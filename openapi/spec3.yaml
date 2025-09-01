@@ -6,8 +6,8 @@ info:
     OpenAPI extracted from the Orca Scan REST API guide
     Source: https://orcascan.com/guides/rest-api-f09a21c3
   license:
-    name: Apache 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0.html
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: https://api.orcascan.com/v1
 security:
