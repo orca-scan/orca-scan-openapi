@@ -1,6 +1,6 @@
 ## Orca Scan OpenAPI
 
-This repository contains [OpenAPI specifications][openapi] for OrcaScan's API.
+This repository contains [OpenAPI specifications](https://www.openapis.org/) for OrcaScan's API.
 
 Files can be found in the `openapi/` directory
 
