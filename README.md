@@ -5,12 +5,7 @@ This repository contains [OpenAPI specifications](https://www.openapis.org/) for
 Files can be found in the `openapi/` directory
 
 ### Why?
-
-- Single source of truth for endpoints, models, and auth
-- Generate SDKs/clients in many languages from one spec
-- Power interactive docs (Swagger UI/Redoc) without duplicating content
-- Enable validation, contract testing, and breaking-change detection in CI
-- Reduce onboarding time for integrators and internal teams
+an OpenAPI specification makes it easier to integrate to the OrcaScan's API
 
 ### Authentication
 
