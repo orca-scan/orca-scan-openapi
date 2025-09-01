@@ -1,11 +1,11 @@
 ## Orca Scan OpenAPI
 
-This repository contains [OpenAPI specifications](https://www.openapis.org/) for OrcaScan's API.
+This repository contains [OpenAPI specifications](https://www.openapis.org/) for the Orca Scan REST API.
 
 Files can be found in the [openapi/](openapi/) directory (e.g. [spec3.yaml](openapi/spec3.yaml)).
 
 ### Why?
-an OpenAPI specification makes it easier to integrate with Orca Scan's API.
+An OpenAPI specification makes it easier to integrate with Orca Scan's API.
 
 ### API docs
 See the official guide: [Orca Scan REST API](https://orcascan.com/guides/rest-api-f09a21c3)
