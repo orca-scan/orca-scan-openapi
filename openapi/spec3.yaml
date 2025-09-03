@@ -91,23 +91,18 @@ components:
         dateTimeFormat: { type: string }
     Row:
       type: object
-      description: Dynamic row object; keys map to your sheet fields
-      properties:
-        _id: { type: string }
-        barcode: { type: string }
-        name: { type: string }
-        quantity:
-          oneOf:
-            - { type: string }
-            - { type: number }
-        description: { type: string }
-        date: { type: string, format: date-time }
-        location: { type: string, description: "lat, lon" }
-        photo:
-          oneOf:
-            - { type: string, format: uri }
-            - { type: string, description: "base64 data URI or base64 string", contentEncoding: base64 }
+      description: >-
+        Dynamic row object. Keys map to your sheet's fields and are defined by the
+        sheet schema. Use GET /sheets/{sheetId}/fields)
+        to discover available fields and types. If a field is configured as an
+        image or attachment, you may send a URL or a base64 string (data URI or
+        raw base64); responses will return URLs.
       additionalProperties: true
+      example:
+        barcode: "ABC123"
+        name: "Widget"
+        quantity: 10
+        imageField: "data:image/png;base64,iVBORw0KGgo..."
     RowIdList:
       type: array
       items: { type: string }
