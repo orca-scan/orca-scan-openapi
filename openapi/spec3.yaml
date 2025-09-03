@@ -50,6 +50,12 @@ components:
       required: false
       description: If true, only provided fields are updated (others remain unchanged)
       schema: { type: boolean, default: false }
+    Barcode:
+      name: barcode
+      in: query
+      required: false
+      description: Filter rows by barcode value
+      schema: { type: string }
   schemas:
     ApiError:
       type: object
@@ -124,7 +130,17 @@ components:
       properties:
         _id: { type: string }
         email: { type: string, format: email }
-        owner: { type: boolean }
+        canUpdate: { type: boolean }
+        canDelete: { type: boolean }
+        canExport: { type: boolean }
+        canAdmin: { type: boolean }
+        invited: { type: boolean }
+      required: [email]
+    UserInput:
+      type: object
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email }
         canUpdate: { type: boolean }
         canDelete: { type: boolean }
         canExport: { type: boolean }
@@ -136,6 +152,22 @@ components:
         _id: { type: string }
         eventName: { type: string }
         sheetId: { type: string }
+        targetUrl: { type: string, format: uri }
+      required: [eventName, targetUrl]
+    HookInput:
+      type: object
+      properties:
+        eventName:
+          type: string
+          enum:
+            - rows:import:append
+            - rows:import:replace
+            - rows:add
+            - rows:update
+            - rows:delete
+            - columns:clear
+            - sheet:clear
+            - sheet:settings:update
         targetUrl: { type: string, format: uri }
       required: [eventName, targetUrl]
     Field:
@@ -171,6 +203,13 @@ components:
         readonlyMobile: { type: boolean }
         useInMobileSearch: { type: boolean }
         useValueInList: { type: boolean }
+    FieldInputNew:
+      allOf:
+        - $ref: '#/components/schemas/Field'
+        - type: object
+          required: [label, format]
+    FieldInputUpdate:
+      $ref: '#/components/schemas/Field'
   responses:
     ErrorResponse:
       description: Error
@@ -223,7 +262,9 @@ paths:
               type: object
               properties:
                 name: { type: string }
+                description: { type: string }
                 templateName: { type: string }
+                includeTestData: { type: boolean }
               required: [name]
       responses:
         "200":
@@ -239,6 +280,8 @@ paths:
                       _id: { type: string }
                       name: { type: string }
                       rows: { type: integer }
+        "409": { $ref: "#/components/responses/ErrorResponse" }
+        "501": { $ref: "#/components/responses/ErrorResponse" }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -267,7 +310,7 @@ paths:
       operationId: clearSheet
       parameters: [ { $ref: "#/components/parameters/SheetId" } ]
       responses:
-        "204": { description: Cleared }
+        "200": { description: Cleared }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -299,7 +342,7 @@ paths:
       operationId: deleteSheet
       parameters: [ { $ref: "#/components/parameters/SheetId" } ]
       responses:
-        "204": { description: Deleted }
+        "200": { description: Deleted }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -308,7 +351,9 @@ paths:
       tags: [Rows]
       summary: Get all rows
       operationId: getRows
-      parameters: [ { $ref: "#/components/parameters/SheetId" } ]
+      parameters:
+        - { $ref: "#/components/parameters/SheetId" }
+        - { $ref: "#/components/parameters/Barcode" }
       responses:
         "200":
           description: OK
@@ -391,7 +436,7 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/RowIdList" }
       responses:
-        "204": { description: Deleted }
+        "200": { description: Deleted }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -426,7 +471,11 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/Row" }
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Row"
+                - type: object
+                  required: [barcode]
       responses:
         "200":
           description: Updated
@@ -446,7 +495,7 @@ paths:
         - { $ref: "#/components/parameters/SheetId" }
         - { $ref: "#/components/parameters/RowId" }
       responses:
-        "204": { description: Deleted }
+        "200": { description: Deleted }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -520,7 +569,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/User" }
+            schema: { $ref: "#/components/schemas/UserInput" }
       responses:
         "200":
           description: Added
@@ -545,7 +594,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/User" }
+            schema: { $ref: "#/components/schemas/UserInput" }
       responses:
         "200":
           description: Updated
@@ -565,7 +614,7 @@ paths:
         - { $ref: "#/components/parameters/SheetId" }
         - { $ref: "#/components/parameters/UserId" }
       responses:
-        "204": { description: Deleted }
+        "200": { description: Deleted }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -617,7 +666,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/Hook" }
+            schema: { $ref: "#/components/schemas/HookInput" }
       responses:
         "200":
           description: Created
@@ -660,7 +709,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/Hook" }
+            schema: { $ref: "#/components/schemas/HookInput" }
       responses:
         "200":
           description: Updated
@@ -680,7 +729,7 @@ paths:
         - { $ref: "#/components/parameters/SheetId" }
         - { $ref: "#/components/parameters/HookId" }
       responses:
-        "204": { description: Deleted }
+        "200": { description: Deleted }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 
@@ -712,7 +761,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/Field" }
+            schema: { $ref: "#/components/schemas/FieldInputNew" }
       responses:
         "200":
           description: Added
@@ -737,7 +786,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/Field" }
+            schema: { $ref: "#/components/schemas/FieldInputUpdate" }
       responses:
         "200":
           description: Updated
@@ -757,7 +806,7 @@ paths:
         - { $ref: "#/components/parameters/SheetId" }
         - { $ref: "#/components/parameters/FieldKey" }
       responses:
-        "204": { description: Deleted }
+        "200": { description: Deleted }
         "400": { $ref: "#/components/responses/ErrorResponse" }
         default: { $ref: "#/components/responses/ErrorResponse" }
 

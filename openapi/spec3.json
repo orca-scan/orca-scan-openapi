@@ -77,6 +77,15 @@
           "type": "boolean",
           "default": false
         }
+      },
+      "Barcode": {
+        "name": "barcode",
+        "in": "query",
+        "required": false,
+        "description": "Filter rows by barcode value",
+        "schema": {
+          "type": "string"
+        }
       }
     },
     "schemas": {
@@ -275,8 +284,33 @@
             "type": "string",
             "format": "email"
           },
-          "owner": {
+          "canUpdate": {
             "type": "boolean"
+          },
+          "canDelete": {
+            "type": "boolean"
+          },
+          "canExport": {
+            "type": "boolean"
+          },
+          "canAdmin": {
+            "type": "boolean"
+          },
+          "invited": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "UserInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
           },
           "canUpdate": {
             "type": "boolean"
@@ -306,6 +340,32 @@
           },
           "sheetId": {
             "type": "string"
+          },
+          "targetUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "eventName",
+          "targetUrl"
+        ]
+      },
+      "HookInput": {
+        "type": "object",
+        "properties": {
+          "eventName": {
+            "type": "string",
+            "enum": [
+              "rows:import:append",
+              "rows:import:replace",
+              "rows:add",
+              "rows:update",
+              "rows:delete",
+              "columns:clear",
+              "sheet:clear",
+              "sheet:settings:update"
+            ]
           },
           "targetUrl": {
             "type": "string",
@@ -408,6 +468,23 @@
             "type": "boolean"
           }
         }
+      },
+      "FieldInputNew": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Field"
+          },
+          {
+            "type": "object",
+            "required": [
+              "label",
+              "format"
+            ]
+          }
+        ]
+      },
+      "FieldInputUpdate": {
+        "$ref": "#/components/schemas/Field"
       }
     },
     "responses": {
@@ -500,8 +577,14 @@
                   "name": {
                     "type": "string"
                   },
+                  "description": {
+                    "type": "string"
+                  },
                   "templateName": {
                     "type": "string"
+                  },
+                  "includeTestData": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -539,6 +622,12 @@
             }
           },
           "400": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "409": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "501": {
             "$ref": "#/components/responses/ErrorResponse"
           },
           "default": {
@@ -597,7 +686,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Cleared"
           },
           "400": {
@@ -668,7 +757,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Deleted"
           },
           "400": {
@@ -690,6 +779,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/SheetId"
+          },
+          {
+            "$ref": "#/components/parameters/Barcode"
           }
         ],
         "responses": {
@@ -863,7 +955,7 @@
           }
         },
         "responses": {
-          "204": {
+          "200": {
             "description": "Deleted"
           },
           "400": {
@@ -936,7 +1028,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Row"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Row"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "barcode"
+                    ]
+                  }
+                ]
               }
             }
           }
@@ -980,7 +1082,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Deleted"
           },
           "400": {
@@ -1130,7 +1232,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/UserInput"
               }
             }
           }
@@ -1180,7 +1282,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/UserInput"
               }
             }
           }
@@ -1224,7 +1326,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Deleted"
           },
           "400": {
@@ -1331,7 +1433,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Hook"
+                "$ref": "#/components/schemas/HookInput"
               }
             }
           }
@@ -1419,7 +1521,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Hook"
+                "$ref": "#/components/schemas/HookInput"
               }
             }
           }
@@ -1463,7 +1565,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Deleted"
           },
           "400": {
@@ -1530,7 +1632,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Field"
+                "$ref": "#/components/schemas/FieldInputNew"
               }
             }
           }
@@ -1580,7 +1682,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Field"
+                "$ref": "#/components/schemas/FieldInputUpdate"
               }
             }
           }
@@ -1624,7 +1726,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Deleted"
           },
           "400": {
